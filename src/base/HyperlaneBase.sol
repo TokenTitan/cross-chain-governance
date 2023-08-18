@@ -34,9 +34,10 @@ abstract contract HyperlaneBase is MultilayerBase {
     function __hyperlaneInit(
         address _mailbox,
         uint256 _mintCost,
-        uint16[2] memory _dstChainIds
+        uint32 _chainId,
+        uint32[2] memory _dstChainIds
     ) internal initializer {
-        __multilayerInit(_mailbox, _dstChainIds);
+        __multilayerInit(_mailbox, _chainId, _dstChainIds);
         mintCost = _mintCost;
     }
 
@@ -51,36 +52,33 @@ abstract contract HyperlaneBase is MultilayerBase {
 
     /**
      * @dev to send message to Hyperlane
-     * @param _from address of the token sender
-     * @param _to address of the token reciever
-     * @param _amount the number of tokens being transferred
+     * @param targetChain the chain id of destination
+     * @param targets address of the target contracts
+     * @param values to be used when executing proposal
+     * @param calldatas to be executed according to the proposal
+     * @param descriptionHash additional data
     */
-    function _hlSend(
-        address _from,
-        address _to,
-        uint256 _amount
+    function _hlExecute(
+        uint32 targetChain,
+        address[] memory targets,
+        uint256[] memory values,
+        bytes[] memory calldatas,
+        bytes32 descriptionHash
     ) internal {
-        if(msg.value < mintCost) {
-            revert InsufficientFundsProvidedForMint();
+        bytes memory _message = abi.encode(targetChain, targets, values, calldatas, descriptionHash);
+
+        bytes memory _path = trustedRemoteLookup[targetChain];
+        address _recipient;
+        assembly {
+            _recipient := mload(add(_path, 20))
         }
-        bytes memory _message = abi.encode(_from, _to, _amount);
-        uint256 noOfChains = dstChainIds.length;
-        uint16[2] memory dstChainIds = dstChainIds;
-        for(uint256 _index = 0; _index < noOfChains; _index++) {
-            uint16 _destinationDomain = dstChainIds[_index];
-            bytes memory _path = trustedRemoteLookup[_destinationDomain];
-            address _recipient;
-            assembly {
-                _recipient := mload(add(_path, 20))
-            }
-            bytes32 addressInBytes32 = _addressToBytes32(_recipient);
-            IMailbox(chainEndpoint)
-                .dispatch(
-                    uint32(_destinationDomain),
-                    addressInBytes32,
-                    _message
-                );
-        }
+        bytes32 addressInBytes32 = _addressToBytes32(_recipient);
+        IMailbox(chainEndpoint)
+            .dispatch(
+                targetChain,
+                addressInBytes32,
+                _message
+            );
     }
 
     function _addressToBytes32(address _addr) private pure returns (bytes32) {

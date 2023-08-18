@@ -5,11 +5,12 @@ import { OwnableUpgradeable } from "lib/openzeppelin-contracts-upgradeable/contr
 
 abstract contract MultilayerBase is OwnableUpgradeable {
     address public chainEndpoint;
-    uint16[2] public dstChainIds;
+    uint32[2] public dstChainIds;
+    uint32 private chainId;
 
-    mapping(uint16 => bytes) public trustedRemoteLookup;
+    mapping(uint32 => bytes) public trustedRemoteLookup;
 
-    event SetTrustedRemoteAddress(uint16 _remoteChainId, bytes _remoteAddress);
+    event SetTrustedRemoteAddress(uint32 _remoteChainId, bytes _remoteAddress);
 
     error InvalidEvent();
 
@@ -20,9 +21,11 @@ abstract contract MultilayerBase is OwnableUpgradeable {
      */
     function __multilayerInit(
         address _chainEndpoint,
-        uint16[2] memory _dstChainIds
+        uint32 _chainId,
+        uint32[2] memory _dstChainIds
     ) internal initializer (
     ) {
+        chainId = _chainId;
         chainEndpoint = _chainEndpoint;
         uint256 noOfChains = _dstChainIds.length;
 
@@ -36,7 +39,7 @@ abstract contract MultilayerBase is OwnableUpgradeable {
      * @param _remoteChainId chain id of the target chain
      * @param _remoteAddress address of the contract on target chain
      */
-    function setTrustedRemoteAddress(uint16 _remoteChainId, bytes calldata _remoteAddress) external onlyOwner {
+    function setTrustedRemoteAddress(uint32 _remoteChainId, bytes calldata _remoteAddress) external onlyOwner {
         trustedRemoteLookup[_remoteChainId] = abi.encodePacked(_remoteAddress, address(this));
         emit SetTrustedRemoteAddress(_remoteChainId, _remoteAddress);
     }
