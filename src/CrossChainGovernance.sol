@@ -10,6 +10,10 @@ contract CrossChainGovernance is GovernorCountingSimpleUpgradeable, HyperlaneBas
     using TimersUpgradeable for TimersUpgradeable.BlockNumber;
     using SafeCastUpgradeable for uint256;
 
+    uint256 private _quorum;
+    uint256 private _votingDelay;
+    uint256 private _votingPeriod;
+
     // maps proposal ID to the destination chain of proposal
     mapping(uint256 => uint256) private _proposalDestChains;
 
@@ -17,8 +21,17 @@ contract CrossChainGovernance is GovernorCountingSimpleUpgradeable, HyperlaneBas
         string memory _name,
         address _mailbox,
         uint32 _chainId,
+        uint256 _quorumNumber,
+        uint256 _votingDelayTime,
+        uint256 _votingDuration,
         uint32[2] memory _dstChainIds
     ) external initializer {
+        require(_votingDuration > 0, "Invalid Voting Duration");
+        require(_quorumNumber > 1, "Quorum should be greater than 1");
+
+        _quorum = _quorumNumber;
+        _votingDelay = _votingDelayTime;
+        _votingPeriod = _votingDuration;
         __Ownable_init();
         __Governor_init(_name);
         __hyperlaneInit(_mailbox, _chainId, _dstChainIds);
@@ -148,19 +161,20 @@ contract CrossChainGovernance is GovernorCountingSimpleUpgradeable, HyperlaneBas
         bytes memory /* params */
     ) internal pure override returns (uint256) {
         // TODO: to be implemented
-        return 0;
+        // Let default vote weight be 1
+        return 1;
     }
 
-    function quorum(uint256 blockNumber) public view override returns (uint256) {
-
+    function quorum(uint256 /* blockNumber */) public view override returns (uint256) {
+        return _quorum;
     }
 
     function votingDelay() public view override returns (uint256) {
-
+        return _votingDelay;
     }
 
     function votingPeriod() public view override returns (uint256) {
-
+        return _votingPeriod;
     }
 
     function _processRecieve(bytes memory _payload) internal override {
