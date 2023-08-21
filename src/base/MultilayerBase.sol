@@ -6,7 +6,7 @@ import { OwnableUpgradeable } from "lib/openzeppelin-contracts-upgradeable/contr
 abstract contract MultilayerBase is OwnableUpgradeable {
     address public chainEndpoint;
     uint32[2] public dstChainIds;
-    uint32 private chainId;
+    uint32 internal chainId;
 
     mapping(uint32 => bytes) public trustedRemoteLookup;
 

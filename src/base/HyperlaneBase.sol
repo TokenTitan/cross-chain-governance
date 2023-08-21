@@ -33,12 +33,10 @@ abstract contract HyperlaneBase is MultilayerBase {
 
     function __hyperlaneInit(
         address _mailbox,
-        uint256 _mintCost,
         uint32 _chainId,
         uint32[2] memory _dstChainIds
     ) internal initializer {
         __multilayerInit(_mailbox, _chainId, _dstChainIds);
-        mintCost = _mintCost;
     }
 
     // To receive the message from Hyperlane
