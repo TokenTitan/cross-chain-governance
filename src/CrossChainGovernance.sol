@@ -2,11 +2,11 @@
 pragma solidity 0.8.13;
 
 import { GovernorCountingSimpleUpgradeable } from "./base/GovernorCountingSimpleUpgradeable.sol";
-import { HyperlaneBase } from "./base/HyperlaneBase.sol";
+import { LayerZeroBase } from "./base/LayerZeroBase.sol";
 import { TimersUpgradeable } from "lib/openzeppelin-contracts-upgradeable/contracts/utils/TimersUpgradeable.sol";
 import { SafeCastUpgradeable } from "lib/openzeppelin-contracts-upgradeable/contracts/utils/math/SafeCastUpgradeable.sol";
 
-contract CrossChainGovernance is GovernorCountingSimpleUpgradeable, HyperlaneBase {
+contract CrossChainGovernance is GovernorCountingSimpleUpgradeable, LayerZeroBase {
     using TimersUpgradeable for TimersUpgradeable.BlockNumber;
     using SafeCastUpgradeable for uint256;
 
@@ -19,12 +19,11 @@ contract CrossChainGovernance is GovernorCountingSimpleUpgradeable, HyperlaneBas
 
     function initialize(
         string memory _name,
-        address _mailbox,
-        uint32 _chainId,
+        address _lzEndpoint,
+        uint16 _chainId,
         uint256 _quorumNumber,
         uint256 _votingDelayTime,
-        uint256 _votingDuration,
-        uint32[2] memory _dstChainIds
+        uint256 _votingDuration
     ) external initializer {
         require(_votingDuration > 0, "Invalid Voting Duration");
         require(_quorumNumber > 1, "Quorum should be greater than 1");
@@ -34,7 +33,7 @@ contract CrossChainGovernance is GovernorCountingSimpleUpgradeable, HyperlaneBas
         _votingPeriod = _votingDuration;
         __Ownable_init();
         __Governor_init(_name);
-        __hyperlaneInit(_mailbox, _chainId, _dstChainIds);
+        __crossChainInit(_lzEndpoint, _chainId);
     }
 
     /**
@@ -50,7 +49,7 @@ contract CrossChainGovernance is GovernorCountingSimpleUpgradeable, HyperlaneBas
     }
 
     function propose(
-        uint32 targetChain,
+        uint16 targetChain,
         address[] memory targets,
         uint256[] memory values,
         bytes[] memory calldatas,
@@ -105,7 +104,7 @@ contract CrossChainGovernance is GovernorCountingSimpleUpgradeable, HyperlaneBas
      * @dev See {IGovernor-execute}.
      */
     function execute(
-        uint32 targetChain,
+        uint16 targetChain,
         address[] memory targets,
         uint256[] memory values,
         bytes[] memory calldatas,
@@ -127,7 +126,14 @@ contract CrossChainGovernance is GovernorCountingSimpleUpgradeable, HyperlaneBas
             _execute(proposalId, targets, values, calldatas, descriptionHash);
             _afterExecute(proposalId, targets, values, calldatas, descriptionHash);
         } else {
-            _hlExecute(targetChain, targets, values, calldatas, descriptionHash);
+            _lzSend(
+                targetChain,
+                abi.encode(targetChain, targets, values, calldatas, descriptionHash),
+                payable(msg.sender),
+                address(0x0),
+                bytes(""),
+                msg.value
+            );
         }
 
         return proposalId;
@@ -143,7 +149,7 @@ contract CrossChainGovernance is GovernorCountingSimpleUpgradeable, HyperlaneBas
     }
 
     function hashProposal(
-        uint32 targetChain,
+        uint16 targetChain,
         address[] memory targets,
         uint256[] memory values,
         bytes[] memory calldatas,
@@ -179,14 +185,14 @@ contract CrossChainGovernance is GovernorCountingSimpleUpgradeable, HyperlaneBas
 
     function _processRecieve(bytes memory _payload) internal override {
         (
-            uint32 targetChain,
+            uint16 targetChain,
             address[] memory targets,
             uint256[] memory values,
             bytes[] memory calldatas,
             bytes32 descriptionHash
         ) = abi.decode(
                 _payload,
-                (uint32, address[], uint256[], bytes[], bytes32)
+                (uint16, address[], uint256[], bytes[], bytes32)
             );
         require(targetChain == chainId, "Invalid Request");
 

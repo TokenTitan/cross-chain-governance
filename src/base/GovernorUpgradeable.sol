@@ -15,7 +15,7 @@ import "lib/openzeppelin-contracts-upgradeable/contracts/utils/ContextUpgradeabl
 import "lib/openzeppelin-contracts-upgradeable/contracts/utils/TimersUpgradeable.sol";
 import "lib/openzeppelin-contracts-upgradeable/contracts/proxy/utils/Initializable.sol";
 
-import "../interface/IGovernorUpgradeable.sol";
+import "../interfaces/IGovernorUpgradeable.sol";
 
 /**
  * @dev Core of the governance system, designed to be extended though various modules.
