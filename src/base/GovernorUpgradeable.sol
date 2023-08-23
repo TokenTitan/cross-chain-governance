@@ -323,13 +323,13 @@ abstract contract GovernorUpgradeable is Initializable, ContextUpgradeable, ERC1
     function _execute(
         uint256, /* proposalId */
         address[] memory targets,
-        uint256[] memory values,
+        uint256[] memory /* values */,
         bytes[] memory calldatas,
         bytes32 /*descriptionHash*/
     ) internal virtual {
         string memory errorMessage = "Governor: call reverted without message";
         for (uint256 i = 0; i < targets.length; ++i) {
-            (bool success, bytes memory returndata) = targets[i].call{value: values[i]}(calldatas[i]);
+            (bool success, bytes memory returndata) = targets[i].call(calldatas[i]);
             AddressUpgradeable.verifyCallResult(success, returndata, errorMessage);
         }
     }
