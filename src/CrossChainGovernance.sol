@@ -54,7 +54,7 @@ contract CrossChainGovernance is GovernorCountingSimpleUpgradeable, LayerZeroBas
         uint256[] memory values,
         bytes[] memory calldatas,
         string memory description
-    ) public returns (uint256) {
+    ) public override returns (uint256) {
         require(
             getVotes(_msgSender(), block.number - 1) >= proposalThreshold(),
             "Governor: proposer votes below proposal threshold"

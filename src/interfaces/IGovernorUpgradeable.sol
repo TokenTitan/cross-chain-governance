@@ -194,6 +194,14 @@ abstract contract IGovernorUpgradeable is Initializable, IERC165Upgradeable {
      */
     function hasVoted(uint256 proposalId, address account) public view virtual returns (bool);
 
+    function propose(
+        uint16 targetChain,
+        address[] memory targets,
+        uint256[] memory values,
+        bytes[] memory calldatas,
+        string memory description
+    ) public virtual returns (uint256);
+
     /**
      * @dev Create a new proposal. Vote start {IGovernor-votingDelay} blocks after the proposal is created and ends
      * {IGovernor-votingPeriod} blocks after the voting starts.

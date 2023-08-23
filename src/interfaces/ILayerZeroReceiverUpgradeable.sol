@@ -9,4 +9,11 @@ interface ILayerZeroReceiverUpgradeable {
     // @param _nonce - the ordered message nonce
     // @param _payload - the signed payload is the UA bytes has encoded to be sent
     function lzReceive(uint16 _srcChainId, bytes calldata _srcAddress, uint64 _nonce, bytes calldata _payload) external;
+
+    /**
+     * @dev authorise remote chain address corresponding to each chain Id
+     * @param _remoteChainId chain id of the target chain
+     * @param _remoteAddress address of the contract on target chain
+     */
+    function setTrustedRemoteAddress(uint16 _remoteChainId, bytes calldata _remoteAddress) external;
 }
