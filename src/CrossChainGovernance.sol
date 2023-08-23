@@ -183,6 +183,15 @@ contract CrossChainGovernance is GovernorCountingSimpleUpgradeable, LayerZeroBas
         return _votingPeriod;
     }
 
+    function getProposalDestChains(uint256 _proposalId)
+        external
+        override 
+        view
+        returns(uint256)
+    {
+        return _proposalDestChains[_proposalId];
+    }
+
     function _processRecieve(bytes memory _payload) internal override {
         (
             uint16 targetChain,

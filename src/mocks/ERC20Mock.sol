@@ -9,7 +9,7 @@ contract ERC20Mock is ERC20 {
 
     constructor(string memory name_, string memory symbol_) ERC20(name_, symbol_) {}
 
-    function mint(address _to, uint _amount) public {
+    function mint(address _to, uint256 _amount) public {
         require(msg.sender == governor, "Unauthorised");
         _mint(_to, _amount);
     }
