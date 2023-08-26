@@ -83,6 +83,7 @@ contract CrossChainGovernanceTest is Test {
         eRC20Mock = new ERC20Mock("Mock ERC20", "MERC20");
     }
 
+    // Single happy path test case for MVP
     function testProposedMintAcrossChain() public {
         vm.deal(address(crossChainGovernance1), 1 ether);
         bytes memory data = abi.encodeWithSignature("mint(address,uint256)", MOCK_USER_1, 10e18);
